@@ -6,13 +6,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: CI/CD Test
-    # https://github.com/actions/virtual-environments/
+  dev:
+    name: Dev
     runs-on: ubuntu-latest
     steps:
 
-      - name: 🛎️ Checkout
+      - name: Checkout
         uses: actions/checkout@v5
 
       - name: Dependencies
@@ -20,3 +19,19 @@ jobs:
 
       - name: Lint
         run: npx eslint meshcore-bot.js
+
+  prod:
+    name: Prod
+    runs-on: ubuntu-latest
+    needs:
+      - dev
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Dependencies
+        run: npm ci --production
+
+      - name: Smoke Test
+        run: node meshcore-bot.js "gibtesnicht" | grep "cannot open gibtesnicht"
