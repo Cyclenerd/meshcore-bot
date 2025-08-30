@@ -17,7 +17,7 @@ This script is a command bot that connects to a [MeshCore](https://github.com/me
 1.  **Clone**: Clone this repo:
 
     ```bash
-    git clone "https://github.com/Cyclenerd/meshcore-bot""
+    git clone "https://github.com/Cyclenerd/meshcore-bot.git"
     cd "meshcore-bot"
     ```
 

@@ -24,7 +24,7 @@ in your GitHub account.
 Clone your newly created fork of the repository to your local machine with the following command:
 
 ```bash
-git clone https://github.com/Cyclenerd/meshcore-bot.git
+git clone "https://github.com/Cyclenerd/meshcore-bot.git"
 ```
 
 ## Create a New Branch 🌿
