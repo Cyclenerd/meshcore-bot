@@ -1,0 +1,6 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@liamcottle/meshcore.js": "^1.6.0"
+  }
+}

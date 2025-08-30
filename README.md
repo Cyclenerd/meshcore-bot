@@ -5,10 +5,11 @@ This script is a command bot that connects to a MeshCore device and responds to 
 ## Installation
 
 1.  **Node.js**: Make sure you have Node.js installed. You can download it from [https://nodejs.org/](https://nodejs.org/).
-2.  **Dependencies**: Open a terminal in the directory of the `meshcore-bot.js` script and run:
+1.  **Clone:**: Clone this repo.
+1.  **Dependencies**: Open a terminal in the directory of the `meshcore-bot.js` script and run:
 
     ```bash
-    npm install @liamcottle/meshcore.js
+    npm ci
     ```
 
 ## Usage

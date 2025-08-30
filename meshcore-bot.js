@@ -26,6 +26,21 @@ connection.on("connected", async () => {
 
 });
 
+// auto reconnect on disconnect
+connection.on("disconnected", () => {
+    console.log("Disconnected, trying to reconnect...");
+    if (reconnectInterval) {
+        clearInterval(reconnectInterval);
+    }
+    reconnectInterval = setInterval(async () => {
+        try {
+            await connection.connect();
+        } catch (e) {
+            // ignore, we will retry
+        }
+    }, 3000);
+});
+
 // listen for new messages
 connection.on(Constants.PushCodes.MsgWaiting, async () => {
     try {
@@ -61,20 +76,9 @@ async function onChannelMessageReceived(message) {
     }
 }
 
-// auto reconnect on disconnect
-connection.on("disconnected", () => {
-    console.log("Disconnected, trying to reconnect...");
-    if (reconnectInterval) {
-        clearInterval(reconnectInterval);
-    }
-    reconnectInterval = setInterval(async () => {
-        try {
-            await connection.connect();
-        } catch (e) {
-            // ignore, we will retry
-        }
-    }, 3000);
-});
-
 // connect to meshcore device
-await connection.connect();
+try {
+    await connection.connect();
+} catch (e) {
+    console.error("Failed to connect initially", e);
+}
