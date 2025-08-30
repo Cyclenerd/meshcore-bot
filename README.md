@@ -4,8 +4,13 @@ This script is a command bot that connects to a MeshCore device and responds to 
 
 ## Installation
 
-1.  **Node.js**: Make sure you have Node.js installed. You can download it from [https://nodejs.org/](https://nodejs.org/).
-1.  **Clone:**: Clone this repo.
+1.  **Node.js**: Make sure you have Node.js installed. You can download it from [https://nodejs.org/](https://nodejs.org/) or install it on macOS with [Homebrew](https://brew.sh/) package manager:
+
+    ```bash
+    brew install node
+    ```
+
+1.  **Clone**: Clone this repo.
 1.  **Dependencies**: Open a terminal in the directory of the `meshcore-bot.js` script and run:
 
     ```bash
@@ -17,10 +22,10 @@ This script is a command bot that connects to a MeshCore device and responds to 
 To run the bot use the following command:
 
 ```bash
-node meshcore-bot.js [serial_port]
+node meshcore-bot.js [SERIAL_PORT]
 ```
 
--   `[serial_port]` is optional. If not provided, the script will default to `/dev/cu.usbmodem1101`.
+-   `[SERIAL_PORT]` is optional. If not provided, the script will default to `/dev/cu.usbmodem1101`.
 
 ### Example
 
