@@ -1,6 +1,10 @@
 # 🤖 MeshCore Bot
 
-This script is a command bot that connects to a MeshCore device and responds to commands received in private channels.
+This script is a command bot that connects to a [MeshCore](https://github.com/meshcore-dev/MeshCore) companion radio device via serial connection and responds to commands received in private channels.
+
+| Client | Bot |
+|--------|-----|
+| ![Screenshot: Client](./img/screenshot-client.jpg) | ![Screenshot: Bot Log](./img/screenshot-bot.png) |
 
 ## Installation
 
@@ -10,11 +14,17 @@ This script is a command bot that connects to a MeshCore device and responds to 
     brew install node
     ```
 
-1.  **Clone**: Clone this repo.
-1.  **Dependencies**: Open a terminal in the directory of the `meshcore-bot.js` script and run:
+1.  **Clone**: Clone this repo:
 
     ```bash
-    npm ci
+    git clone "https://github.com/Cyclenerd/meshcore-bot""
+    cd "meshcore-bot"
+    ```
+
+1.  **Dependencies**: In the directory run:
+
+    ```bash
+    npm ci --production
     ```
 
 ## Usage
@@ -30,10 +40,14 @@ node meshcore-bot.js [SERIAL_PORT]
 ### Example
 
 ```bash
-node meshcore-bot.js /dev/tty.usbmodem12345
+node meshcore-bot.js "/dev/ttyUSB0"
 ```
 
 ### Commands
 
--   `.ping`: The bot will respond with "PONG! 🏓".
+-   `.ping`: The bot will respond with "PONG! 🏓 (*hop count*)".
 -   `.date`: The bot will respond with the current date and time in ISO format.
+
+## License
+
+All files in this repository are under the [Apache License, Version 2.0](LICENSE) unless noted otherwise.
