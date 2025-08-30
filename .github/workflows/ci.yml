@@ -1,0 +1,22 @@
+name: "CI"
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: CI/CD Test
+    # https://github.com/actions/virtual-environments/
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: 🛎️ Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npx eslint meshcore-bot.js
