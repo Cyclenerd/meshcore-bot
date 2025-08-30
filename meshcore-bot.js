@@ -66,7 +66,7 @@ async function onChannelMessageReceived(message) {
     // handle commands only in own channels, not in public channel with id 0
     if(message.channelIdx > 0){
         if(message.text.includes("!ping")){
-            await connection.sendChannelTextMessage(message.channelIdx, "PONG! 🏓");
+            await connection.sendChannelTextMessage(message.channelIdx, "PONG! 🏓 (" + message.pathLen + ")");
             return;
         }
         if(message.text.includes("!date")){
