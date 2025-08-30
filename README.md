@@ -30,5 +30,5 @@ node meshcore-bot.js /dev/tty.usbmodem12345
 
 ### Commands
 
--   `!ping`: The bot will respond with "PONG! 🏓".
--   `!date`: The bot will respond with the current date and time in ISO format.
+-   `.ping`: The bot will respond with "PONG! 🏓".
+-   `.date`: The bot will respond with the current date and time in ISO format.

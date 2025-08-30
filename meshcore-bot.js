@@ -58,18 +58,19 @@ connection.on(Constants.PushCodes.MsgWaiting, async () => {
 });
 
 async function onContactMessageReceived(message) {
-    console.log("Received contact message", message);
+    console.log("[" + (new Date()).toISOString() + "] Contact message", message);
 }
 
 async function onChannelMessageReceived(message) {
-    console.log(`Received channel message`, message);
+    message.senderTimestampISO = (new Date(message.senderTimestamp * 1000)).toISOString();
+    console.log("[" + (new Date()).toISOString() + "] Channel message", message);
     // handle commands only in own channels, not in public channel with id 0
     if(message.channelIdx > 0){
-        if(message.text.includes("!ping")){
+        if(message.text.includes(".ping")){
             await connection.sendChannelTextMessage(message.channelIdx, "PONG! 🏓 (" + message.pathLen + ")");
             return;
         }
-        if(message.text.includes("!date")){
+        if(message.text.includes(".date")){
             await connection.sendChannelTextMessage(message.channelIdx, (new Date()).toISOString());
             return;
         }
