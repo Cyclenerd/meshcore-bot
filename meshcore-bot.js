@@ -1,6 +1,7 @@
 import { Constants, NodeJSSerialConnection } from "@liamcottle/meshcore.js";
 
 // get port from cli arguments
+/*eslint no-undef: "off"*/
 const port = process.argv[2] || "/dev/cu.usbmodem1101";
 console.log(`Connecting to ${port}`);
 
@@ -33,11 +34,7 @@ connection.on("disconnected", () => {
         clearInterval(reconnectInterval);
     }
     reconnectInterval = setInterval(async () => {
-        try {
-            await connection.connect();
-        } catch (e) {
-            // ignore, we will retry
-        }
+        await connection.connect();
     }, 3000);
 });
 
