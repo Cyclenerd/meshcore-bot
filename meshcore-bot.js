@@ -62,7 +62,9 @@ connection.on("connected", async () => {
     const contacts = await connection.getContacts();
     console.log(`Contacts:`, contacts);
     for(const contact of contacts) {
-        console.log(`Contact: ${contact.advName}`);
+        const typeNames = ["None", "Contact", "Repeater", "Room"];
+        const typeName = typeNames[contact.type] || "Unknown";
+        console.log(`${typeName}: ${contact.advName}; Public Key: ${Buffer.from(contact.publicKey).toString('hex')}`);
     }
 
     // clear reconnect interval if it exists
