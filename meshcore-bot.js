@@ -16,6 +16,10 @@ connection.on("connected", async () => {
     // we are now connected
     console.log("Connected");
 
+    // update clock on meshcore device
+    console.log("Sync Clock...");
+    await connection.syncDeviceTime();
+
     // log contacts
     const contacts = await connection.getContacts();
     console.log(`Contacts:`, contacts);
@@ -28,10 +32,6 @@ connection.on("connected", async () => {
         clearInterval(reconnectInterval);
         reconnectInterval = null;
     }
-
-    // update clock on meshcore device
-    await connection.syncDeviceTime();
-
 });
 
 // auto reconnect on disconnect
