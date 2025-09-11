@@ -115,6 +115,20 @@ connection.on("connected", async () => {
         console.error("Error retrieving contacts", e);
     }
 
+    // log channels
+    console.log("Get Channels...");
+    try {
+        const channels = await connection.getChannels();
+        //console.log(`Channels:`, channels);
+        for(const channel of channels) {
+            if (channel.name) {
+                console.log(`${channel.channelIdx}: ${channel.name}`);
+            }
+        }
+    } catch (e) {
+        console.error("Error retrieving channels", e);
+    }
+
     // clear reconnect interval if it exists
     if (reconnectInterval) {
         clearInterval(reconnectInterval);
