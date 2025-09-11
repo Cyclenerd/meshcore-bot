@@ -16,6 +16,13 @@ connection.on("connected", async () => {
     // we are now connected
     console.log("Connected");
 
+    // log contacts
+    const contacts = await connection.getContacts();
+    console.log(`Contacts:`, contacts);
+    for(const contact of contacts) {
+        console.log(`Contact: ${contact.advName}`);
+    }
+
     // clear reconnect interval if it exists
     if (reconnectInterval) {
         clearInterval(reconnectInterval);
@@ -55,12 +62,12 @@ connection.on(Constants.PushCodes.MsgWaiting, async () => {
 });
 
 async function onContactMessageReceived(message) {
-    console.log("[" + (new Date()).toISOString() + "] Contact message", message);
+    console.log(`[${new Date().toISOString()}] Contact message`, message);
 }
 
 async function onChannelMessageReceived(message) {
     message.senderTimestampISO = (new Date(message.senderTimestamp * 1000)).toISOString();
-    console.log("[" + (new Date()).toISOString() + "] Channel message", message);
+    console.log(`[${new Date().toISOString()}] Channel message`, message);
     // handle commands only in own channels, not in public channel with id 0
     if(message.channelIdx > 0){
         if(message.text.includes(".ping")){
