@@ -1,10 +1,32 @@
 import { Constants, NodeJSSerialConnection } from "@liamcottle/meshcore.js";
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+
+const argv = yargs(hideBin(process.argv))
+    .option('port', {
+        alias: 'p',
+        type: 'string',
+        description: 'Serial port to connect to',
+        default: '/dev/cu.usbmodem1101'
+    })
+    .option('repeaterPublicKeyPrefix', {
+        alias: 'r',
+        type: 'string',
+        description: 'Public key prefix of the repeater to fetch telemetry from'
+    })
+    .option('telemetryInterval', {
+        alias: 't',
+        type: 'number',
+        description: 'Telemetry interval in minutes',
+        default: 15
+    })
+    .argv;
 
 // get port from cli arguments
 /*eslint no-undef: "off"*/
-const port = process.argv[2] || "/dev/cu.usbmodem1101";
-const repeaterPublicKeyPrefix = process.argv[3];
-const telemetryIntervalMinutes = process.argv[4] || 15;
+const port = argv.port;
+const repeaterPublicKeyPrefix = argv.repeaterPublicKeyPrefix;
+const telemetryIntervalMinutes = argv.telemetryInterval;
 const telemetryIntervalMs = telemetryIntervalMinutes * 60 * 1000;
 
 console.log(`Connecting to ${port}`);
