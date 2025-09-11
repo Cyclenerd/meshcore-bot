@@ -185,12 +185,17 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
         await connection.login(contact.publicKey, repeaterPassword);
         console.log("Fetching telemetry...");
         const telemetry = await connection.getTelemetry(contact.publicKey);
-        console.log("Repeater telemetry", telemetry);
+        //console.log("Repeater telemetry", telemetry);
         if (telemetry.lppSensorData) {
             try {
                 const lpp = new LPPDecoder();
                 const decoded = lpp.decode(telemetry.lppSensorData);
-                console.log("Decoded repeater telemetry", decoded);
+                //console.log("Decoded repeater telemetry", decoded);
+                for (const sensor of decoded) {
+                    if (sensor.name === "voltage") {
+                        console.log(`Voltage: ${sensor.value} V`);
+                    }
+                }
             } catch (e) {
                 console.error("Error decoding repeater telemetry", e);
             }
