@@ -17,11 +17,12 @@ class LPPDecoder {
             const type = buffer[i++];
             switch (type) {
                 // Source: https://discord.com/channels/1343693475589263471/1391673743453192242/1395240557176950876
-                case 0x74: // static const LPP_VOLTAGE = 116;
+                case 0x74: { // static const LPP_VOLTAGE = 116;
                     const name = "voltage";
                     this.sensors.push({ channel, type, name, value: buffer.readInt16BE(i) / 100 });
                     i += 2; // 2 bytes 0.01V unsigned
                     break;
+                }
                 default:
                     i = buffer.length;
                     break;
