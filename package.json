@@ -5,8 +5,8 @@
     "start": "node meshcore-bot.js"
   },
   "dependencies": {
+    "@crapougnax/cayennelpp": "^1.2.0",
     "@liamcottle/meshcore.js": "^1.6.0",
-    "cayenne-lpp": "^1.0.2",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

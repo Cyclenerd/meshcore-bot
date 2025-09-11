@@ -1,7 +1,7 @@
 import { Constants, NodeJSSerialConnection } from "@liamcottle/meshcore.js";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import lpp from 'cayenne-lpp';
+import { LPPDecoder } from '@crapougnax/cayennelpp';
 
 const argv = yargs(hideBin(process.argv))
     .option('port', {
@@ -162,12 +162,14 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
         console.log("Repeater telemetry", telemetry);
         // Decode Cayenne LPP payload
         // https://www.thethingsindustries.com/docs/integrations/payload-formatters/cayenne/
-        // https://www.npmjs.com/package/cayenne-lpp
+        // https://www.npmjs.com/package/@crapougnax/cayennelpp
+        
         if (telemetry.lppSensorData) {
             const lppSensorDataBuffer = Buffer.from(telemetry.lppSensorData);
             console.log("Buffer repeater telemetry", lppSensorDataBuffer);
             try {
-                const decoded = lpp.decoder.decode(lppSensorDataBuffer);
+                const decoder = new LPPDecoder();
+                const decoded = decoder.decode(lppSensorDataBuffer);
                 console.log("Decoded repeater telemetry", decoded);
             } catch (e) {
                 console.error("Error decoding repeater telemetry", e);
