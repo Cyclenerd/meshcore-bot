@@ -6,7 +6,7 @@ This script is a command bot that connects to a [MeshCore](https://github.com/me
 > To prevent spam in public channels, this bot only responds in private channels!
 
 The bot is also able to fetch and log telemetry sensor (currently only voltage) data from a repeater node.
-The telemetry data is logged to a CSV file.
+The telemetry data is logged to a Comma-Separated Values (CSV) file.
 The interval at which the telemetry data is fetched can be configured.
 This bot is ideal for testing MeshCore setup with repeater and distance of communication.
 
