@@ -1,6 +1,8 @@
 import { Constants, NodeJSSerialConnection } from "@liamcottle/meshcore.js";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import fs from 'fs';
+
 class LPPDecoder {
     // Decode Cayenne Low Power Payload (LPP) for LoraWan
     constructor() {
@@ -53,6 +55,11 @@ const argv = yargs(hideBin(process.argv))
         description: 'Repeater password',
         default: ''
     })
+    .option('csv', {
+        alias: 'c',
+        type: 'string',
+        description: 'CSV file to log telemetry to'
+    })
     .argv;
 
 // get port from cli arguments
@@ -62,11 +69,15 @@ const repeaterPublicKeyPrefix = argv.repeaterPublicKeyPrefix;
 const repeaterPassword = argv.repeaterPassword;
 const telemetryIntervalMinutes = argv.telemetryInterval;
 const telemetryIntervalMs = telemetryIntervalMinutes * 60 * 1000;
+const csvFile = argv.csv;
 
 console.log(`Connecting to ${port}`);
 if(repeaterPublicKeyPrefix){
     console.log(`Repeater public key prefix: ${repeaterPublicKeyPrefix}`);
     console.log(`Telemetry interval: ${telemetryIntervalMinutes} minutes`);
+    if (csvFile) {
+       console.log(`Logging telemetry to: ${csvFile}`);
+    }
 }
 
 // create connection
@@ -194,6 +205,14 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
                 for (const sensor of decoded) {
                     if (sensor.name === "voltage") {
                         console.log(`Voltage: ${sensor.value} V`);
+                        if (csvFile) {
+                            const timestamp = new Date().toISOString();
+                            const csvRow = `${timestamp},${sensor.value}\n`;
+                            if (!fs.existsSync(csvFile)) {
+                                fs.writeFileSync(csvFile, 'timestamp,voltage\n');
+                            }
+                            fs.appendFileSync(csvFile, csvRow);
+                        }
                     }
                 }
             } catch (e) {
