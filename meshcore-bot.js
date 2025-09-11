@@ -1,14 +1,91 @@
 import { Constants, NodeJSSerialConnection } from "@liamcottle/meshcore.js";
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import fs from 'fs';
+
+class LPPDecoder {
+    // Decode Cayenne Low Power Payload (LPP) for LoraWan
+    constructor() {
+        this.sensors = [];
+    }
+
+    decode(data) {
+        const buffer = Buffer.from(data);
+        let i = 0;
+        while (i < buffer.length) {
+            const channel = buffer[i++];
+            const type = buffer[i++];
+            switch (type) {
+                // Source: https://discord.com/channels/1343693475589263471/1391673743453192242/1395240557176950876
+                case 0x74: { // static const LPP_VOLTAGE = 116;
+                    const name = "voltage";
+                    this.sensors.push({ channel, type, name, value: buffer.readInt16BE(i) / 100 });
+                    i += 2; // 2 bytes 0.01V unsigned
+                    break;
+                }
+                default:
+                    i = buffer.length;
+                    break;
+            }
+        }
+        return this.sensors;
+    }
+}
+
+const argv = yargs(hideBin(process.argv))
+    .option('port', {
+        alias: 's',
+        type: 'string',
+        description: 'Serial port to connect to',
+        default: '/dev/cu.usbmodem1101'
+    })
+    .option('repeaterPublicKeyPrefix', {
+        alias: 'r',
+        type: 'string',
+        description: 'Public key prefix of the repeater to fetch telemetry from'
+    })
+    .option('telemetryInterval', {
+        alias: 't',
+        type: 'number',
+        description: 'Telemetry interval in minutes',
+        default: 15
+    })
+    .option('repeaterPassword', {
+        alias: 'p',
+        type: 'string',
+        description: 'Repeater password',
+        default: ''
+    })
+    .option('csv', {
+        alias: 'c',
+        type: 'string',
+        description: 'CSV file to log telemetry to'
+    })
+    .argv;
 
 // get port from cli arguments
 /*eslint no-undef: "off"*/
-const port = process.argv[2] || "/dev/cu.usbmodem1101";
+const port = argv.port;
+const repeaterPublicKeyPrefix = argv.repeaterPublicKeyPrefix;
+const repeaterPassword = argv.repeaterPassword;
+const telemetryIntervalMinutes = argv.telemetryInterval;
+const telemetryIntervalMs = telemetryIntervalMinutes * 60 * 1000;
+const csvFile = argv.csv;
+
 console.log(`Connecting to ${port}`);
+if(repeaterPublicKeyPrefix){
+    console.log(`Repeater public key prefix: ${repeaterPublicKeyPrefix}`);
+    console.log(`Telemetry interval: ${telemetryIntervalMinutes} minutes`);
+    if (csvFile) {
+       console.log(`Logging telemetry to: ${csvFile}`);
+    }
+}
 
 // create connection
 const connection = new NodeJSSerialConnection(port);
 
 let reconnectInterval;
+let telemetryInterval;
 
 // wait until connected
 connection.on("connected", async () => {
@@ -16,15 +93,56 @@ connection.on("connected", async () => {
     // we are now connected
     console.log("Connected");
 
+    // update clock on meshcore device
+    console.log("Sync Clock...");
+    try {
+        await connection.syncDeviceTime();
+    } catch (e) {
+        console.error("Error syncing device time", e);
+    }
+
+    // log contacts
+    console.log("Get Contacts...");
+    try {
+        const contacts = await connection.getContacts();
+        //console.log(`Contacts:`, contacts);
+        for(const contact of contacts) {
+            const typeNames = ["None", "Contact", "Repeater", "Room"];
+            const typeName = typeNames[contact.type] || "Unknown";
+            console.log(`${typeName}: ${contact.advName}; Public Key: ${Buffer.from(contact.publicKey).toString('hex')}`);
+        }
+    } catch (e) {
+        console.error("Error retrieving contacts", e);
+    }
+
+    // log channels
+    console.log("Get Channels...");
+    try {
+        const channels = await connection.getChannels();
+        //console.log(`Channels:`, channels);
+        for(const channel of channels) {
+            if (channel.name) {
+                console.log(`${channel.channelIdx}: ${channel.name}`);
+            }
+        }
+    } catch (e) {
+        console.error("Error retrieving channels", e);
+    }
+
     // clear reconnect interval if it exists
     if (reconnectInterval) {
         clearInterval(reconnectInterval);
         reconnectInterval = null;
     }
 
-    // update clock on meshcore device
-    await connection.syncDeviceTime();
-
+    if(repeaterPublicKeyPrefix){
+        // Start telemetry fetching interval
+        if (telemetryInterval) {
+            clearInterval(telemetryInterval);
+        }
+        telemetryInterval = setInterval(() => getRepeaterTelemetry(repeaterPublicKeyPrefix, repeaterPassword), telemetryIntervalMs);
+        getRepeaterTelemetry(repeaterPublicKeyPrefix, repeaterPassword); // Also fetch immediately on connect
+    }
 });
 
 // auto reconnect on disconnect
@@ -36,6 +154,11 @@ connection.on("disconnected", () => {
     reconnectInterval = setInterval(async () => {
         await connection.connect();
     }, 3000);
+
+    if (telemetryInterval) {
+        clearInterval(telemetryInterval);
+        telemetryInterval = null;
+    }
 });
 
 // listen for new messages
@@ -50,17 +173,17 @@ connection.on(Constants.PushCodes.MsgWaiting, async () => {
             }
         }
     } catch(e) {
-        console.log(e);
+        console.error("Message could not be retrieved", e);
     }
 });
 
 async function onContactMessageReceived(message) {
-    console.log("[" + (new Date()).toISOString() + "] Contact message", message);
+    console.log(`[${new Date().toISOString()}] Contact message`, message);
 }
 
 async function onChannelMessageReceived(message) {
     message.senderTimestampISO = (new Date(message.senderTimestamp * 1000)).toISOString();
-    console.log("[" + (new Date()).toISOString() + "] Channel message", message);
+    console.log(`[${new Date().toISOString()}] Channel message`, message);
     // handle commands only in own channels, not in public channel with id 0
     if(message.channelIdx > 0){
         if(message.text.includes(".ping")){
@@ -71,6 +194,49 @@ async function onChannelMessageReceived(message) {
             await connection.sendChannelTextMessage(message.channelIdx, (new Date()).toISOString());
             return;
         }
+    }
+}
+
+async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
+    console.log("Fetching repeater telemetry...");
+    try {
+        const contact = await connection.findContactByPublicKeyPrefix(Buffer.from(publicKeyPrefix, "hex"));
+        if(!contact){
+            console.log("Repeater contact not found");
+            return;
+        }
+
+        // login to repeater and get repeater telemetry
+        console.log("Logging in to repeater...");
+        await connection.login(contact.publicKey, repeaterPassword);
+        console.log("Fetching telemetry...");
+        const telemetry = await connection.getTelemetry(contact.publicKey);
+        //console.log("Repeater telemetry", telemetry);
+        if (telemetry.lppSensorData) {
+            try {
+                const lpp = new LPPDecoder();
+                const decoded = lpp.decode(telemetry.lppSensorData);
+                //console.log("Decoded repeater telemetry", decoded);
+                for (const sensor of decoded) {
+                    if (sensor.name === "voltage") {
+                        console.log(`Voltage: ${sensor.value} V`);
+                        if (csvFile) {
+                            const timestamp = new Date().toISOString();
+                            const csvRow = `${timestamp},${sensor.value}\n`;
+                            if (!fs.existsSync(csvFile)) {
+                                fs.writeFileSync(csvFile, 'timestamp,voltage\n');
+                            }
+                            fs.appendFileSync(csvFile, csvRow);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error decoding repeater telemetry", e);
+            }
+        }
+
+    } catch(e) {
+        console.error("Error fetching repeater telemetry", e);
     }
 }
 
