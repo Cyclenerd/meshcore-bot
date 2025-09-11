@@ -3,12 +3,21 @@ import { Constants, NodeJSSerialConnection } from "@liamcottle/meshcore.js";
 // get port from cli arguments
 /*eslint no-undef: "off"*/
 const port = process.argv[2] || "/dev/cu.usbmodem1101";
+const repeaterPublicKeyPrefix = process.argv[3];
+const telemetryIntervalMinutes = process.argv[4] || 15;
+const telemetryIntervalMs = telemetryIntervalMinutes * 60 * 1000;
+
 console.log(`Connecting to ${port}`);
+if(repeaterPublicKeyPrefix){
+    console.log(`Repeater public key prefix: ${repeaterPublicKeyPrefix}`);
+    console.log(`Telemetry interval: ${telemetryIntervalMinutes} minutes`);
+}
 
 // create connection
 const connection = new NodeJSSerialConnection(port);
 
 let reconnectInterval;
+let telemetryInterval;
 
 // wait until connected
 connection.on("connected", async () => {
@@ -32,6 +41,15 @@ connection.on("connected", async () => {
         clearInterval(reconnectInterval);
         reconnectInterval = null;
     }
+
+    if(repeaterPublicKeyPrefix){
+        // Start telemetry fetching interval
+        if (telemetryInterval) {
+            clearInterval(telemetryInterval);
+        }
+        telemetryInterval = setInterval(() => getRepeaterTelemetry(repeaterPublicKeyPrefix), telemetryIntervalMs);
+        getRepeaterTelemetry(repeaterPublicKeyPrefix); // Also fetch immediately on connect
+    }
 });
 
 // auto reconnect on disconnect
@@ -43,6 +61,11 @@ connection.on("disconnected", () => {
     reconnectInterval = setInterval(async () => {
         await connection.connect();
     }, 3000);
+
+    if (telemetryInterval) {
+        clearInterval(telemetryInterval);
+        telemetryInterval = null;
+    }
 });
 
 // listen for new messages
@@ -78,6 +101,30 @@ async function onChannelMessageReceived(message) {
             await connection.sendChannelTextMessage(message.channelIdx, (new Date()).toISOString());
             return;
         }
+    }
+}
+
+async function getRepeaterTelemetry(publicKeyPrefix) {
+    console.log("Fetching repeater telemetry...");
+    try {
+        const contact = await connection.findContactByPublicKeyPrefix(Buffer.from(publicKeyPrefix, "hex"));
+        if(!contact){
+            console.log("Repeater contact not found");
+            return;
+        }
+
+        // login to repeater (with empty guest password)
+        console.log("Logging in to repeater...");
+        const res = await connection.login(contact.publicKey, "");
+        console.log("Login response", res);
+
+        // get repeater telemetry
+        console.log("Fetching telemetry...");
+        const telemetry = await connection.getTelemetry(contact.publicKey);
+        console.log("Repeater telemetry", telemetry);
+
+    } catch(e) {
+        console.error("Error fetching repeater telemetry", e);
     }
 }
 

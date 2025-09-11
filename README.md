@@ -32,16 +32,25 @@ This script is a command bot that connects to a [MeshCore](https://github.com/me
 To run the bot use the following command:
 
 ```bash
-node meshcore-bot.js [SERIAL_PORT]
+node meshcore-bot.js [SERIAL_PORT] [REPEATER_PUBLIC_KEY_PREFIX] [TELEMETRY_INTERVAL_MINUTES]
 ```
 
--   `[SERIAL_PORT]` is optional. If not provided, the script will default to `/dev/cu.usbmodem1101`.
+-   `[SERIAL_PORT]` (optional): The serial port of the MeshCore device. Defaults to `/dev/cu.usbmodem1101`.
+-   `[REPEATER_PUBLIC_KEY_PREFIX]` (optional): The public key prefix of a repeater node to fetch telemetry from. If provided, the telemetry feature is enabled.
+-   `[TELEMETRY_INTERVAL_MINUTES]` (optional): The interval in minutes to fetch telemetry data. Defaults to 15.
 
-### Example
+### Examples
 
+**Basic:**
 ```bash
 node meshcore-bot.js "/dev/ttyUSB0"
 ```
+
+**With Repeater Telemetry:**
+```bash
+node meshcore-bot.js "/dev/ttyUSB0" "935c6b694200644710a374c250c76f7aed9ec2ff3e60261447d4eda7c246ce5d" 5
+```
+This will connect to the device on `/dev/ttyUSB0` and fetch telemetry from the specified repeater every 5 minutes.
 
 ### Commands
 
