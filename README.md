@@ -1,6 +1,11 @@
 # 🤖 MeshCore Bot
 
-This script is a command bot that connects to a [MeshCore](https://github.com/meshcore-dev/MeshCore) companion radio device via serial connection and responds to commands received in private channels.
+This script is a command bot that connects to a [MeshCore](https://github.com/meshcore-dev/MeshCore) companion radio device via USB serial connection and responds to commands received in private channels.
+
+The bot is also able to fetch and log telemetry sensor (currently only voltage) data from a repeater node.
+The telemetry data is logged to a CSV file.
+The interval at which the telemetry data is fetched can be configured.
+This bot is ideal for testing MeshCore setup with repeater and distance of communication.
 
 | Client | Bot |
 |--------|-----|
@@ -37,9 +42,9 @@ node meshcore-bot.js --port [SERIAL_PORT] --repeater-public-key-prefix [REPEATER
 
 -   `--port` or `-s` (optional): The serial port of the MeshCore device. Defaults to `/dev/cu.usbmodem1101`.
 -   `--repeater-public-key-prefix` or `-r` (optional): The public key prefix of a repeater node to fetch telemetry from. If provided, the telemetry feature is enabled.
--   `--repeater-password` or `-p` (optional): The password for the repeater. Defaults to an empty string.
--   `--telemetry-interval` or `-t` (optional): The interval in minutes to fetch telemetry data. Defaults to 15.
--   `--csv` or `-c` (optional): The CSV file to log telemetry to. If provided, the telemetry data will be logged to this file.
+-   `--repeater-password` or `-p` (optional): The password for the repeater. By default, this is an empty string.
+-   `--telemetry-interval` or `-t` (optional): The interval in minutes at which telemetry data is retrieved from the repeater. The default value is `15`.
+-   `--csv` or `-c` (optional): The CSV file in which the repeater's telemetry data is to be logged. If this file is specified, the telemetry data will be logged in this file.
 
 ### Examples
 
