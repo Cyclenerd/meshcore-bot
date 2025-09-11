@@ -2,6 +2,9 @@
 
 This script is a command bot that connects to a [MeshCore](https://github.com/meshcore-dev/MeshCore) companion radio device via USB serial connection and responds to commands received in private channels.
 
+> [!IMPORTANT]
+> To prevent spam in public channels, this bot only responds in private channels!
+
 The bot is also able to fetch and log telemetry sensor (currently only voltage) data from a repeater node.
 The telemetry data is logged to a CSV file.
 The interval at which the telemetry data is fetched can be configured.
