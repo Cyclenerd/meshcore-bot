@@ -166,8 +166,12 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
         if (telemetry.lppSensorData) {
             const lppSensorDataBuffer = Buffer.from(telemetry.lppSensorData);
             console.log("Buffer repeater telemetry", lppSensorDataBuffer);
-            const decoded = lpp.decoder.decode(lppSensorDataBuffer);
-            console.log("Decoded repeater telemetry", decoded);
+            try {
+                const decoded = lpp.decoder.decode(lppSensorDataBuffer);
+                console.log("Decoded repeater telemetry", decoded);
+            } catch (e) {
+                console.error("Error decoding repeater telemetry", e);
+            }
         }
 
     } catch(e) {
