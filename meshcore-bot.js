@@ -57,15 +57,24 @@ connection.on("connected", async () => {
 
     // update clock on meshcore device
     console.log("Sync Clock...");
-    await connection.syncDeviceTime();
+    try {
+        await connection.syncDeviceTime();
+    } catch (e) {
+        console.error("Error syncing device time", e);
+    }
 
     // log contacts
-    const contacts = await connection.getContacts();
-    //console.log(`Contacts:`, contacts);
-    for(const contact of contacts) {
-        const typeNames = ["None", "Contact", "Repeater", "Room"];
-        const typeName = typeNames[contact.type] || "Unknown";
-        console.log(`${typeName}: ${contact.advName}; Public Key: ${Buffer.from(contact.publicKey).toString('hex')}`);
+    console.log("Get Contacts...");
+    try {
+        const contacts = await connection.getContacts();
+        //console.log(`Contacts:`, contacts);
+        for(const contact of contacts) {
+            const typeNames = ["None", "Contact", "Repeater", "Room"];
+            const typeName = typeNames[contact.type] || "Unknown";
+            console.log(`${typeName}: ${contact.advName}; Public Key: ${Buffer.from(contact.publicKey).toString('hex')}`);
+        }
+    } catch (e) {
+        console.error("Error retrieving contacts", e);
     }
 
     // clear reconnect interval if it exists
@@ -112,7 +121,7 @@ connection.on(Constants.PushCodes.MsgWaiting, async () => {
             }
         }
     } catch(e) {
-        console.log(e);
+        console.error("Message could not be retrieved", e);
     }
 });
 
@@ -155,7 +164,9 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
         // https://www.thethingsindustries.com/docs/integrations/payload-formatters/cayenne/
         // https://www.npmjs.com/package/cayenne-lpp
         if (telemetry.lppSensorData) {
-            const decoded = lpp.decode(telemetry.lppSensorData);
+            const lppSensorDataBuffer = Buffer.from(telemetry.lppSensorData);
+            console.log("Buffer repeater telemetry", lppSensorDataBuffer);
+            const decoded = lpp.decoder.decode(lppSensorDataBuffer);
             console.log("Decoded repeater telemetry", decoded);
         }
 
