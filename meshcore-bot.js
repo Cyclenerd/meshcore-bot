@@ -2,6 +2,7 @@ import { Constants, NodeJSSerialConnection } from "@liamcottle/meshcore.js";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 class LPPDecoder {
+    // Decode Cayenne Low Power Payload (LPP) for LoraWan
     constructor() {
         this.sensors = [];
     }
@@ -12,73 +13,11 @@ class LPPDecoder {
             const channel = buffer[i++];
             const type = buffer[i++];
             switch (type) {
-                case 0x00: // Digital Input
-                    this.sensors.push({ channel, type, value: buffer[i++] });
-                    break;
-                case 0x01: // Digital Output
-                    this.sensors.push({ channel, type, value: buffer[i++] });
-                    break;
-                case 0x02: // Analog Input
-                    this.sensors.push({ channel, type, value: buffer.readInt16BE(i) / 100 });
-                    i += 2;
-                    break;
-                case 0x03: // Analog Output
-                    this.sensors.push({ channel, type, value: buffer.readInt16BE(i) / 100 });
-                    i += 2;
-                    break;
-                case 0x65: // Illuminance
-                    this.sensors.push({ channel, type, value: buffer.readUInt16BE(i) });
-                    i += 2;
-                    break;
-                case 0x66: // Presence
-                    this.sensors.push({ channel, type, value: buffer[i++] });
-                    break;
-                case 0x67: // Temperature
-                    this.sensors.push({ channel, type, value: buffer.readInt16BE(i) / 10 });
-                    i += 2;
-                    break;
-                case 0x68: // Humidity
-                    this.sensors.push({ channel, type, value: buffer[i++] / 2 });
-                    break;
-                case 0x71: // Accelerometer
-                    this.sensors.push({
-                        channel,
-                        type,
-                        value: {
-                            x: buffer.readInt16BE(i) / 1000,
-                            y: buffer.readInt16BE(i + 2) / 1000,
-                            z: buffer.readInt16BE(i + 4) / 1000,
-                        },
-                    });
-                    i += 6;
-                    break;
-                case 0x73: // Barometer
-                    this.sensors.push({ channel, type, value: buffer.readUInt16BE(i) / 10 });
-                    i += 2;
-                    break;
-                case 0x86: // Gyrometer
-                    this.sensors.push({
-                        channel,
-                        type,
-                        value: {
-                            x: buffer.readInt16BE(i) / 100,
-                            y: buffer.readInt16BE(i + 2) / 100,
-                            z: buffer.readInt16BE(i + 4) / 100,
-                        },
-                    });
-                    i += 6;
-                    break;
-                case 0x88: // GPS Location
-                    this.sensors.push({
-                        channel,
-                        type,
-                        value: {
-                            latitude: buffer.readInt32BE(i) / 10000,
-                            longitude: buffer.readInt32BE(i + 4) / 10000,
-                            altitude: buffer.readInt32BE(i + 8) / 100,
-                        },
-                    });
-                    i += 12;
+                // Source: https://discord.com/channels/1343693475589263471/1391673743453192242/1395240557176950876
+                case 0x74: // static const LPP_VOLTAGE = 116;
+                    const name = "voltage";
+                    this.sensors.push({ channel, type, name, value: buffer.readInt16BE(i) / 100 });
+                    i += 2; // 2 bytes 0.01V unsigned
                     break;
                 default:
                     i = buffer.length;
@@ -250,8 +189,8 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
             const lppSensorDataBuffer = Buffer.from(telemetry.lppSensorData);
             console.log("Buffer repeater telemetry", lppSensorDataBuffer);
             try {
-                const decoder = new LPPDecoder();
-                const decoded = decoder.decode(lppSensorDataBuffer);
+                const lpp = new LPPDecoder();
+                const decoded = lpp.decode(lppSensorDataBuffer);
                 console.log("Decoded repeater telemetry", decoded);
             } catch (e) {
                 console.error("Error decoding repeater telemetry", e);
