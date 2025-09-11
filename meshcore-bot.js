@@ -4,7 +4,7 @@ import { hideBin } from 'yargs/helpers';
 
 const argv = yargs(hideBin(process.argv))
     .option('port', {
-        alias: 'p',
+        alias: 's',
         type: 'string',
         description: 'Serial port to connect to',
         default: '/dev/cu.usbmodem1101'
@@ -20,12 +20,19 @@ const argv = yargs(hideBin(process.argv))
         description: 'Telemetry interval in minutes',
         default: 15
     })
+    .option('repeaterPassword', {
+        alias: 'p',
+        type: 'string',
+        description: 'Repeater password',
+        default: ''
+    })
     .argv;
 
 // get port from cli arguments
 /*eslint no-undef: "off"*/
 const port = argv.port;
 const repeaterPublicKeyPrefix = argv.repeaterPublicKeyPrefix;
+const repeaterPassword = argv.repeaterPassword;
 const telemetryIntervalMinutes = argv.telemetryInterval;
 const telemetryIntervalMs = telemetryIntervalMinutes * 60 * 1000;
 
@@ -69,8 +76,8 @@ connection.on("connected", async () => {
         if (telemetryInterval) {
             clearInterval(telemetryInterval);
         }
-        telemetryInterval = setInterval(() => getRepeaterTelemetry(repeaterPublicKeyPrefix), telemetryIntervalMs);
-        getRepeaterTelemetry(repeaterPublicKeyPrefix); // Also fetch immediately on connect
+        telemetryInterval = setInterval(() => getRepeaterTelemetry(repeaterPublicKeyPrefix, repeaterPassword), telemetryIntervalMs);
+        getRepeaterTelemetry(repeaterPublicKeyPrefix, repeaterPassword); // Also fetch immediately on connect
     }
 });
 
@@ -126,7 +133,7 @@ async function onChannelMessageReceived(message) {
     }
 }
 
-async function getRepeaterTelemetry(publicKeyPrefix) {
+async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
     console.log("Fetching repeater telemetry...");
     try {
         const contact = await connection.findContactByPublicKeyPrefix(Buffer.from(publicKeyPrefix, "hex"));
@@ -137,7 +144,7 @@ async function getRepeaterTelemetry(publicKeyPrefix) {
 
         // login to repeater (with empty guest password)
         console.log("Logging in to repeater...");
-        const res = await connection.login(contact.publicKey, "");
+        const res = await connection.login(contact.publicKey, repeaterPassword);
         console.log("Login response", res);
 
         // get repeater telemetry
