@@ -7,7 +7,8 @@ class LPPDecoder {
         this.sensors = [];
     }
 
-    decode(buffer) {
+    decode(data) {
+        const buffer = Buffer.from(data);
         let i = 0;
         while (i < buffer.length) {
             const channel = buffer[i++];
@@ -186,11 +187,9 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
         const telemetry = await connection.getTelemetry(contact.publicKey);
         console.log("Repeater telemetry", telemetry);
         if (telemetry.lppSensorData) {
-            const lppSensorDataBuffer = Buffer.from(telemetry.lppSensorData);
-            console.log("Buffer repeater telemetry", lppSensorDataBuffer);
             try {
                 const lpp = new LPPDecoder();
-                const decoded = lpp.decode(lppSensorDataBuffer);
+                const decoded = lpp.decode(telemetry.lppSensorData);
                 console.log("Decoded repeater telemetry", decoded);
             } catch (e) {
                 console.error("Error decoding repeater telemetry", e);
