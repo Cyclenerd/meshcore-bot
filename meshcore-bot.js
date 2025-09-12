@@ -5,6 +5,10 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import fs from 'fs';
 
+function getTimestamp() {
+    return new Date().toISOString().slice(0, -5) + 'Z';
+}
+
 class LPPDecoder {
     // Decode Cayenne Low Power Payload (LPP) for LoraWan
     constructor() {
@@ -20,7 +24,7 @@ class LPPDecoder {
             switch (type) {
                 // Source: https://discord.com/channels/1343693475589263471/1391673743453192242/1395240557176950876
                 case 0x74: { // static const LPP_VOLTAGE = 116;
-                    const name = "voltage";
+                    const name = "lpp_volts";
                     this.sensors.push({ channel, type, name, value: buffer.readInt16BE(i) / 100 });
                     i += 2; // 2 bytes 0.01V unsigned
                     break;
@@ -44,12 +48,12 @@ const argv = yargs(hideBin(process.argv))
     .option('repeaterPublicKeyPrefix', {
         alias: 'r',
         type: 'string',
-        description: 'Public key prefix of the repeater to fetch telemetry from'
+        description: 'Public key of the repeater to fetch telemetry from'
     })
-    .option('telemetryInterval', {
-        alias: 't',
+    .option('repeaterInterval', {
+        alias: 'i',
         type: 'number',
-        description: 'Telemetry interval in minutes',
+        description: 'Repeater interval in minutes',
         default: 15
     })
     .option('repeaterPassword', {
@@ -70,7 +74,7 @@ const argv = yargs(hideBin(process.argv))
 const port = argv.port;
 const repeaterPublicKeyPrefix = argv.repeaterPublicKeyPrefix;
 const repeaterPassword = argv.repeaterPassword;
-const telemetryIntervalMinutes = argv.telemetryInterval;
+const telemetryIntervalMinutes = argv.repeaterInterval;
 const telemetryIntervalMs = telemetryIntervalMinutes * 60 * 1000;
 const csvFile = argv.csv;
 
@@ -180,12 +184,12 @@ connection.on(Constants.PushCodes.MsgWaiting, async () => {
 });
 
 async function onContactMessageReceived(message) {
-    console.log(`[${new Date().toISOString()}] Contact message`, message);
+    console.log(`[${getTimestamp()}] Contact message`, message);
 }
 
 async function onChannelMessageReceived(message) {
     message.senderTimestampISO = (new Date(message.senderTimestamp * 1000)).toISOString();
-    console.log(`[${new Date().toISOString()}] Channel message`, message);
+    console.log(`[${getTimestamp()}] Channel message`, message);
     // handle commands only in own channels, not in public channel with id 0
     if(message.channelIdx > 0){
         if(message.text.includes(".ping")){
@@ -200,36 +204,36 @@ async function onChannelMessageReceived(message) {
 }
 
 async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
-    console.log("Fetching repeater telemetry...");
+    console.log("Fetching repeater status and telemetry...");
     try {
         const contact = await connection.findContactByPublicKeyPrefix(Buffer.from(publicKeyPrefix, "hex"));
         if(!contact){
-            console.log("Repeater contact not found");
+            console.error("Repeater contact not found");
             return;
         }
 
-        // login to repeater and get repeater telemetry
+        // login to repeater and get repeater status telemetry
         console.log("Logging in to repeater...");
         await connection.login(contact.publicKey, repeaterPassword);
+        // get repeater status
+        console.log("Fetching status...");
+        const timestamp = getTimestamp(); // Store timestamp of first fetch for CSV
+        const status = await connection.getStatus(contact.publicKey);
+        console.log(`[${timestamp}] Repeater status`, status);
+        // get repeater telemetry
         console.log("Fetching telemetry...");
         const telemetry = await connection.getTelemetry(contact.publicKey);
-        //console.log("Repeater telemetry", telemetry);
+        console.log(`[${getTimestamp()}] Repeater telemetry`, telemetry);
+        let lpp_volts = 0.0;
         if (telemetry.lppSensorData) {
             try {
                 const lpp = new LPPDecoder();
                 const decoded = lpp.decode(telemetry.lppSensorData);
-                //console.log("Decoded repeater telemetry", decoded);
+                console.log(`[${getTimestamp()}] Decoded repeater telemetry`, decoded);
                 for (const sensor of decoded) {
-                    if (sensor.name === "voltage") {
-                        console.log(`Voltage: ${sensor.value} V`);
-                        if (csvFile) {
-                            const timestamp = new Date().toISOString();
-                            const csvRow = `${timestamp},${sensor.value}\n`;
-                            if (!fs.existsSync(csvFile)) {
-                                fs.writeFileSync(csvFile, 'timestamp,voltage\n');
-                            }
-                            fs.appendFileSync(csvFile, csvRow);
-                        }
+                    if (sensor.name === "lpp_volts") {
+                        lpp_volts = sensor.value;
+                        console.log(`LPP Voltage: ${lpp_volts} V`);
                     }
                 }
             } catch (e) {
@@ -237,8 +241,56 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
             }
         }
 
+        if (csvFile) {
+            console.log("Write to CSV file...");
+            const header = [
+                'timestamp',
+                'lpp_volts',
+                'batt_milli_volts',
+                'curr_tx_queue_len',
+                'noise_floor',
+                'last_rssi',
+                'n_packets_recv',
+                'n_packets_sent',
+                'total_air_time_secs',
+                'total_up_time_secs',
+                'n_sent_flood',
+                'n_sent_direct',
+                'n_recv_flood',
+                'n_recv_direct',
+                'err_events',
+                'last_snr',
+                'n_direct_dups',
+                'n_flood_dups'
+            ].join(',') + '\n';
+            const statusValues = [
+                timestamp,
+                lpp_volts,
+                status.batt_milli_volts,
+                status.curr_tx_queue_len,
+                status.noise_floor,
+                status.last_rssi,
+                status.n_packets_recv,
+                status.n_packets_sent,
+                status.total_air_time_secs,
+                status.total_up_time_secs,
+                status.n_sent_flood,
+                status.n_sent_direct,
+                status.n_recv_flood,
+                status.n_recv_direct,
+                status.err_events,
+                status.last_snr,
+                status.n_direct_dups,
+                status.n_flood_dups
+            ].join(',') + '\n';
+            if (!fs.existsSync(csvFile)) {
+                fs.writeFileSync(csvFile, header);
+            }
+            fs.appendFileSync(csvFile, statusValues);
+        }
+        console.log("Done, waiting for the next interval.");
     } catch(e) {
-        console.error("Error fetching repeater telemetry", e);
+        console.error("Error fetching repeater status or telemetry", e);
     }
 }
 
