@@ -16,10 +16,18 @@ This bot is ideal for testing MeshCore setup with repeater and distance of commu
 
 ## Installation
 
-1.  **Node.js**: Make sure you have Node.js installed. You can download it from [https://nodejs.org/](https://nodejs.org/) or install it on macOS with [Homebrew](https://brew.sh/) package manager:
+1.  **Node.js**: Make sure you have Node.js installed. You can download it from [https://nodejs.org/](https://nodejs.org/) or install it via a software package manager:
+
+    macOS using Homebrew:
 
     ```bash
     brew install node
+    ```
+
+    Debian and Ubuntu based Linux distributions:
+
+    ```bash
+    sudo apt install nodejs npm
     ```
 
 1.  **Clone**: Clone this repo:
