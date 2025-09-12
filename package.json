@@ -1,19 +1,31 @@
 {
-  "type": "module",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "node meshcore-bot.js"
-  },
+  "author": "Nils K. <git@cyclenerd.de> (https://cyclenerd.de/)",
   "bin": {
     "meshcore-bot": "./meshcore-bot.js"
+  },
+  "bugs": {
+    "url": "https://github.com/Cyclenerd/meshcore-bot/issues"
   },
   "dependencies": {
     "@liamcottle/meshcore.js": "^1.6.0",
     "yargs": "^17.7.2"
   },
+  "description": "Command bot that connects to a MeshCore companion radio device via USB serial",
   "devDependencies": {
     "@eslint/js": "^9.34.0",
     "eslint": "^9.35.0",
     "globals": "^16.3.0"
-  }
+  },
+  "homepage": "https://github.com/Cyclenerd/meshcore-bot",
+  "license": "Apache-2.0",
+  "name": "meshcore-bot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cyclenerd/meshcore-bot.git"
+  },
+  "scripts": {
+    "start": "node meshcore-bot.js"
+  },
+  "type": "module",
+  "version": "1.0.0"
 }

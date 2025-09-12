@@ -12,7 +12,7 @@ This bot is ideal for testing MeshCore setup with repeater and distance of commu
 
 | Client | Bot |
 |--------|-----|
-| ![Screenshot: Client](./img/screenshot-client.jpg) | ![Screenshot: Bot Log](./img/screenshot-bot.png) |
+| ![Screenshot: Client](https://github.com/Cyclenerd/meshcore-bot/raw/master/img/screenshot-client.jpg) | ![Screenshot: Bot Log](https://github.com/Cyclenerd/meshcore-bot/raw/master/img/screenshot-bot.png) |
 
 ## Installation
 
@@ -96,4 +96,4 @@ timestamp,lpp_volts,batt_milli_volts,curr_tx_queue_len,noise_floor,last_rssi,n_p
 
 ## License
 
-All files in this repository are under the [Apache License, Version 2.0](LICENSE) unless noted otherwise.
+All files in this repository are under the [Apache License, Version 2.0](https://github.com/Cyclenerd/meshcore-bot/blob/master/LICENSE) unless noted otherwise.
