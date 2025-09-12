@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Constants, NodeJSSerialConnection } from "@liamcottle/meshcore.js";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';

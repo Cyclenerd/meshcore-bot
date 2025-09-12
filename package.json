@@ -4,6 +4,9 @@
   "scripts": {
     "start": "node meshcore-bot.js"
   },
+  "bin": {
+    "meshcore-bot": "./meshcore-bot.js"
+  },
   "dependencies": {
     "@liamcottle/meshcore.js": "^1.6.0",
     "yargs": "^17.7.2"
