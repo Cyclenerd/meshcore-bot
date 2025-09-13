@@ -99,6 +99,14 @@ connection.on("connected", async () => {
     // we are now connected
     console.log("Connected");
 
+    // query device info
+    try {
+        const device = await connection.deviceQuery();
+        console.log(`[${getTimestamp()}] Device info`, device);
+    } catch (e) {
+        console.error("Error getting device info", e);
+    }
+
     // update clock on meshcore device
     console.log("Sync Clock...");
     try {
