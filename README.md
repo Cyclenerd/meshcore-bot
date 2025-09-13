@@ -5,9 +5,9 @@ This script is a command bot that connects to a [MeshCore](https://github.com/me
 > [!IMPORTANT]
 > To prevent spam in public channels, this bot only responds in private channels!
 
-The bot is also able to fetch and log status (uptime, TX air time, last SNR, noise floor...) and telemetry sensor data (currently only voltage) from a repeater node.
-The status and telemetry data is logged to a Comma-Separated Values (CSV) file.
-The interval at which the status and telemetry data is fetched can be configured.
+The bot is also able to fetch and log status data (uptime, TX air time, last SNR, noise floor...) from a repeater node.
+The status data is logged to a Comma-Separated Values (CSV) file.
+The interval at which the status data is fetched can be configured.
 This bot is ideal for testing MeshCore setup with repeater and distance of communication.
 
 | Client | Bot |
@@ -48,14 +48,14 @@ This bot is ideal for testing MeshCore setup with repeater and distance of commu
 To run the bot use the following command:
 
 ```bash
-node meshcore-bot.js --port [SERIAL_PORT] --repeater-public-key-prefix [REPEATER_PUBLIC_KEY_PREFIX] --repeater-password [REPEATER_PASSWORD] --repeater-interval [TELEMETRY_INTERVAL_MINUTES] --csv [CSV_FILE]
+node meshcore-bot.js --port [SERIAL_PORT] --repeater-public-key-prefix [REPEATER_PUBLIC_KEY_PREFIX] --repeater-password [REPEATER_PASSWORD] --repeater-interval [STATUS_INTERVAL_MINUTES] --csv [CSV_FILE]
 ```
 
 -   `--port` or `-s` (optional): The serial port of the MeshCore device. Defaults to `/dev/cu.usbmodem1101`.
--   `--repeater-public-key-prefix` or `-r` (optional): The public key prefix of a repeater node to fetch status and telemetry from. If provided, this feature is enabled.
+-   `--repeater-public-key-prefix` or `-r` (optional): The public key prefix of a repeater node to fetch status from. If provided, this feature is enabled.
 -   `--repeater-password` or `-p` (optional): The password for the repeater. By default, this is an empty string.
--   `--repeater-interval` or `-i` (optional): The interval in minutes at which status and telemetry data is retrieved from the repeater. The default value is `15`.
--   `--csv` or `-c` (optional): The CSV file in which the repeater's status and telemetry data is to be logged. If this file is specified, the data will be logged in this file.
+-   `--repeater-interval` or `-i` (optional): The interval in minutes at which status data is retrieved from the repeater. The default value is `15`.
+-   `--csv` or `-c` (optional): The CSV file in which the repeater's status data is to be logged. If this file is specified, the data will be logged in this file.
 
 ### Examples
 
@@ -65,7 +65,7 @@ node meshcore-bot.js --port [SERIAL_PORT] --repeater-public-key-prefix [REPEATER
 node meshcore-bot.js --port "/dev/ttyUSB0"
 ```
 
-**With Repeater Status and Telemetry:**
+**With Repeater Status:**
 
 ```bash
 node meshcore-bot.js \
@@ -74,7 +74,8 @@ node meshcore-bot.js \
 --repeater-password "your-password" \
 --repeater-interval 30
 ```
-This will connect to the device on `/dev/ttyUSB0` and fetch telemetry from the specified repeater every 30 minutes.
+
+This will connect to the device on `/dev/ttyUSB0` and fetch status data from the specified repeater every 30 minutes.
 
 **With Repeater and CSV Logging:**
 
@@ -84,17 +85,17 @@ node meshcore-bot.js \
 --repeater-public-key-prefix "935c6b694200644710a374c250c76f7aed9ec2ff3e60261447d4eda7c246ce5d" \
 --repeater-password "your-password" \
 --repeater-interval 30 \
---csv "telemetry.csv"
+--csv "status.csv"
 ```
 
-This will do the same as the previous example, but it will also log the telemetry data to `telemetry.csv`.
+This will do the same as the previous example, but it will also log the status data to `status.csv`.
 
 Example CSV:
 
 ```csv
-timestamp,lpp_volts,batt_milli_volts,curr_tx_queue_len,noise_floor,last_rssi,n_packets_recv,n_packets_sent,total_air_time_secs,total_up_time_secs,n_sent_flood,n_sent_direct,n_recv_flood,n_recv_direct,err_events,last_snr,n_direct_dups,n_flood_dups
-2025-09-12T19:06:07Z,3.97,3969,0,-111,-59,2029,1749,1399,700263,1672,77,1514,359,0,28,0,98
-2025-09-12T19:08:32Z,3.96,3969,0,-110,-60,2033,1753,1401,700407,1676,77,1515,362,0,28,0,98
+timestamp,batt_milli_volts,curr_tx_queue_len,noise_floor,last_rssi,n_packets_recv,n_packets_sent,total_air_time_secs,total_up_time_secs,n_sent_flood,n_sent_direct,n_recv_flood,n_recv_direct,err_events,last_snr,n_direct_dups,n_flood_dups
+2025-09-12T19:06:07Z,3969,0,-111,-59,2029,1749,1399,700263,1672,77,1514,359,0,28,0,98
+2025-09-12T19:08:32Z,3969,0,-110,-60,2033,1753,1401,700407,1676,77,1515,362,0,28,0,98
 ```
 
 ### Commands

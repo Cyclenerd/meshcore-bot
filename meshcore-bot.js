@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Constants, NodeJSSerialConnection, CayenneLpp } from "@liamcottle/meshcore.js";
+import { Constants, NodeJSSerialConnection } from "@liamcottle/meshcore.js";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import fs from 'fs';
@@ -19,7 +19,7 @@ const argv = yargs(hideBin(process.argv))
     .option('repeaterPublicKeyPrefix', {
         alias: 'r',
         type: 'string',
-        description: 'Public key of the repeater to fetch telemetry from'
+        description: 'Public key of the repeater to fetch status from'
     })
     .option('repeaterInterval', {
         alias: 'i',
@@ -36,7 +36,7 @@ const argv = yargs(hideBin(process.argv))
     .option('csv', {
         alias: 'c',
         type: 'string',
-        description: 'CSV file to log telemetry to'
+        description: 'CSV file to log status to'
     })
     .argv;
 
@@ -45,16 +45,16 @@ const argv = yargs(hideBin(process.argv))
 const port = argv.port;
 const repeaterPublicKeyPrefix = argv.repeaterPublicKeyPrefix;
 const repeaterPassword = argv.repeaterPassword;
-const telemetryIntervalMinutes = argv.repeaterInterval;
-const telemetryIntervalMs = telemetryIntervalMinutes * 60 * 1000;
+const statusIntervalMinutes = argv.repeaterInterval;
+const statusIntervalMs = statusIntervalMinutes * 60 * 1000;
 const csvFile = argv.csv;
 
 console.log(`Connecting to ${port}`);
 if(repeaterPublicKeyPrefix){
     console.log(`Repeater public key prefix: ${repeaterPublicKeyPrefix}`);
-    console.log(`Telemetry interval: ${telemetryIntervalMinutes} minutes`);
+    console.log(`Status interval: ${statusIntervalMinutes} minutes`);
     if (csvFile) {
-       console.log(`Logging telemetry to: ${csvFile}`);
+       console.log(`Logging status to: ${csvFile}`);
     }
 }
 
@@ -62,7 +62,7 @@ if(repeaterPublicKeyPrefix){
 const connection = new NodeJSSerialConnection(port);
 
 let reconnectInterval;
-let telemetryInterval;
+let statusInterval;
 
 // wait until connected
 connection.on("connected", async () => {
@@ -122,12 +122,12 @@ connection.on("connected", async () => {
     }
 
     if(repeaterPublicKeyPrefix){
-        // Start telemetry fetching interval
-        if (telemetryInterval) {
-            clearInterval(telemetryInterval);
+        // Start  fetching interval
+        if (statusInterval) {
+            clearInterval(statusInterval);
         }
-        telemetryInterval = setInterval(() => getRepeaterTelemetry(repeaterPublicKeyPrefix, repeaterPassword), telemetryIntervalMs);
-        getRepeaterTelemetry(repeaterPublicKeyPrefix, repeaterPassword); // Also fetch immediately on connect
+        statusInterval = setInterval(() => getRepeater(repeaterPublicKeyPrefix, repeaterPassword), statusIntervalMs);
+        getRepeater(repeaterPublicKeyPrefix, repeaterPassword); // Also fetch immediately on connect
     }
 });
 
@@ -141,9 +141,9 @@ connection.on("disconnected", () => {
         await connection.connect();
     }, 3000);
 
-    if (telemetryInterval) {
-        clearInterval(telemetryInterval);
-        telemetryInterval = null;
+    if (statusInterval) {
+        clearInterval(statusInterval);
+        statusInterval = null;
     }
 });
 
@@ -192,8 +192,8 @@ connection.on(Constants.PushCodes.Advert, async (advert) => {
     }
 });
 
-async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
-    console.log("Fetching repeater status and telemetry...");
+async function getRepeater(publicKeyPrefix, repeaterPassword) {
+    console.log("Fetching repeater status...");
     try {
         const contact = await connection.findContactByPublicKeyPrefix(Buffer.from(publicKeyPrefix, "hex"));
         if(!contact){
@@ -201,35 +201,19 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
             return;
         }
 
-        // login to repeater and get repeater status telemetry
+        // login to repeater and get repeater status 
         console.log("Logging in to repeater...");
         await connection.login(contact.publicKey, repeaterPassword);
         // get repeater status
         console.log("Fetching status...");
         const timestamp = getTimestamp(); // Store timestamp of first fetch for CSV
-        const status = await connection.getStatus(contact.publicKey);
+        const status = await connection.getStatus(contact.publicKey, 5000);
         console.log(`[${timestamp}] Repeater status`, status);
-        // get repeater telemetry
-        console.log("Fetching telemetry...");
-        const telemetry = await connection.getTelemetry(contact.publicKey);
-        console.log(`[${getTimestamp()}] Repeater telemetry`, telemetry);
-        // parse telemetry
-        const parsedTelemetry = CayenneLpp.parse(telemetry.lppSensorData);
-        console.log(`[${getTimestamp()}] Decoded repeater telemetry`, parsedTelemetry);
-        // find battery voltage telemetry on channel 1
-        const lpp_volts = parsedTelemetry.find((item) => item.channel === 1 && item.type === CayenneLpp.LPP_VOLTAGE)?.value;
-
-        if(lpp_volts !== undefined) {
-            console.log(`LPP Voltage: ${lpp_volts} V`);
-        } else {
-            console.log("LPP Voltage not found in telemetry");
-        }
-
+        
         if (csvFile) {
             console.log("Write to CSV file...");
             const header = [
                 'timestamp',
-                'lpp_volts',
                 'batt_milli_volts',
                 'curr_tx_queue_len',
                 'noise_floor',
@@ -249,7 +233,6 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
             ].join(',') + '\n';
             const statusValues = [
                 timestamp,
-                lpp_volts,
                 status.batt_milli_volts,
                 status.curr_tx_queue_len,
                 status.noise_floor,
@@ -274,7 +257,7 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
         }
         console.log("Done, waiting for the next interval.");
     } catch(e) {
-        console.error("Error fetching repeater status or telemetry", e);
+        console.error("Error fetching repeater status!", e);
     }
 }
 
