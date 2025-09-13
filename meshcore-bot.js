@@ -207,7 +207,7 @@ async function getRepeater(publicKeyPrefix, repeaterPassword) {
         // get repeater status
         console.log("Fetching status...");
         const timestamp = getTimestamp(); // Store timestamp of first fetch for CSV
-        const status = await connection.getStatus(contact.publicKey, 5000);
+        const status = await connection.getStatus(contact.publicKey);
         console.log(`[${timestamp}] Repeater status`, status);
         
         if (csvFile) {
