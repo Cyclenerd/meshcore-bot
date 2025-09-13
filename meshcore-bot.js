@@ -102,7 +102,8 @@ connection.on("connected", async () => {
     // query device info
     try {
         const device = await connection.deviceQuery();
-        console.log(`[${getTimestamp()}] Device info`, device);
+        console.log("Model:", device.manufacturerModel);
+        console.log("Firmware build date:", device.firmware_build_date);
     } catch (e) {
         console.error("Error getting device info", e);
     }
