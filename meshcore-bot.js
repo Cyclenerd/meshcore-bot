@@ -1,41 +1,12 @@
 #!/usr/bin/env node
 
-import { Constants, NodeJSSerialConnection } from "@liamcottle/meshcore.js";
+import { Constants, NodeJSSerialConnection, CayenneLpp } from "@liamcottle/meshcore.js";
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import fs from 'fs';
 
 function getTimestamp() {
     return new Date().toISOString().slice(0, -5) + 'Z';
-}
-
-class LPPDecoder {
-    // Decode Cayenne Low Power Payload (LPP) for LoraWan
-    constructor() {
-        this.sensors = [];
-    }
-
-    decode(data) {
-        const buffer = Buffer.from(data);
-        let i = 0;
-        while (i < buffer.length) {
-            const channel = buffer[i++];
-            const type = buffer[i++];
-            switch (type) {
-                // Source: https://discord.com/channels/1343693475589263471/1391673743453192242/1395240557176950876
-                case 0x74: { // static const LPP_VOLTAGE = 116;
-                    const name = "lpp_volts";
-                    this.sensors.push({ channel, type, name, value: buffer.readInt16BE(i) / 100 });
-                    i += 2; // 2 bytes 0.01V unsigned
-                    break;
-                }
-                default:
-                    i = buffer.length;
-                    break;
-            }
-        }
-        return this.sensors;
-    }
 }
 
 const argv = yargs(hideBin(process.argv))
@@ -242,21 +213,16 @@ async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
         console.log("Fetching telemetry...");
         const telemetry = await connection.getTelemetry(contact.publicKey);
         console.log(`[${getTimestamp()}] Repeater telemetry`, telemetry);
-        let lpp_volts = 0.0;
-        if (telemetry.lppSensorData) {
-            try {
-                const lpp = new LPPDecoder();
-                const decoded = lpp.decode(telemetry.lppSensorData);
-                console.log(`[${getTimestamp()}] Decoded repeater telemetry`, decoded);
-                for (const sensor of decoded) {
-                    if (sensor.name === "lpp_volts") {
-                        lpp_volts = sensor.value;
-                        console.log(`LPP Voltage: ${lpp_volts} V`);
-                    }
-                }
-            } catch (e) {
-                console.error("Error decoding repeater telemetry", e);
-            }
+        // parse telemetry
+        const parsedTelemetry = CayenneLpp.parse(telemetry.lppSensorData);
+        console.log(`[${getTimestamp()}] Decoded repeater telemetry`, parsedTelemetry);
+        // find battery voltage telemetry on channel 1
+        const lpp_volts = parsedTelemetry.find((item) => item.channel === 1 && item.type === CayenneLpp.LPP_VOLTAGE)?.value;
+
+        if(lpp_volts !== undefined) {
+            console.log(`LPP Voltage: ${lpp_volts} V`);
+        } else {
+            console.log("LPP Voltage not found in telemetry");
         }
 
         if (csvFile) {

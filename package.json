@@ -7,7 +7,7 @@
     "url": "https://github.com/Cyclenerd/meshcore-bot/issues"
   },
   "dependencies": {
-    "@liamcottle/meshcore.js": "^1.6.0",
+    "@liamcottle/meshcore.js": "^1.7.0",
     "yargs": "^17.7.2"
   },
   "description": "Command bot that connects to a MeshCore companion radio device via USB serial",
@@ -16,9 +16,22 @@
     "eslint": "^9.35.0",
     "globals": "^16.3.0"
   },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "meshcore-bot.js"
+  ],
   "homepage": "https://github.com/Cyclenerd/meshcore-bot",
+  "keywords": [
+    "bot",
+    "cli",
+    "iot",
+    "meshcore"
+  ],
   "license": "Apache-2.0",
   "name": "meshcore-bot",
+  "private": false,
   "repository": {
     "type": "git",
     "url": "https://github.com/Cyclenerd/meshcore-bot.git"
