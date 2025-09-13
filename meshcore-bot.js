@@ -211,6 +211,15 @@ async function onChannelMessageReceived(message) {
     }
 }
 
+// listen for adverts
+connection.on(Constants.PushCodes.Advert, async (advert) => {
+    try {
+        console.log(`[${getTimestamp()}] Advert: ${Buffer.from(advert.publicKey).toString('hex')}`);
+    } catch(e) {
+        console.error("Advert could not be retrieved", e);
+    }
+});
+
 async function getRepeaterTelemetry(publicKeyPrefix, repeaterPassword) {
     console.log("Fetching repeater status and telemetry...");
     try {
