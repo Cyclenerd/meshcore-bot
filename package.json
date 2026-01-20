@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@liamcottle/meshcore.js": "^1.7.0",
-    "yargs": "^17.7.2"
+    "yargs": "^18.0.0"
   },
   "description": "Command bot that connects to a MeshCore companion radio device via USB serial",
   "devDependencies": {
