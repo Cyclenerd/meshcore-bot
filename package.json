@@ -7,14 +7,14 @@
     "url": "https://github.com/Cyclenerd/meshcore-bot/issues"
   },
   "dependencies": {
-    "@liamcottle/meshcore.js": "^1.11.0",
+    "@liamcottle/meshcore.js": "^1.13.0",
     "yargs": "^18.0.0"
   },
   "description": "Command bot that connects to a MeshCore companion radio device via USB serial",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.2.1",
-    "globals": "^17.3.0"
+    "globals": "^17.5.0"
   },
   "engines": {
     "node": ">=22"
