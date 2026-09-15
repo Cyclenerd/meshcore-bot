@@ -13,7 +13,7 @@
   "description": "Command bot that connects to a MeshCore companion radio device via USB serial",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "eslint": "^10.8.1",
+    "eslint": "^10.10.0",
     "globals": "^17.12.0"
   },
   "engines": {
